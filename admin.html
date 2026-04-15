@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin Panel — Kwesi Pee Gallery</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --ink:#080807;--deep:#0e0d0b;--panel:#141310;--lift:#1c1a16;
+  --rule:#2a2720;--mist:#5c584f;--ash:#9c9488;--cream:#e8e2d6;
+  --gold:#b8963e;--gold-hi:#d4af5a;--gold-lo:rgba(184,150,62,.1);
+  --green:#3d7a55;--red:#8b3a3a;--blue:#3a5f8b;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased}
+body{background:var(--deep);color:var(--ash);font-family:'Jost',sans-serif;font-weight:300;min-height:100vh}
+a{text-decoration:none;color:inherit}
+button{cursor:pointer;font-family:inherit}
+
+/* ── LAYOUT ─────────────────────────────────── */
+.admin{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+
+/* ── SIDEBAR ─────────────────────────────────── */
+.sidebar{
+  background:var(--ink);
+  border-right:1px solid var(--rule);
+  padding:0;
+  position:sticky;top:0;height:100vh;
+  display:flex;flex-direction:column;
+  overflow-y:auto;
+}
+.sidebar-head{
+  padding:2rem 1.5rem 1.5rem;
+  border-bottom:1px solid var(--rule);
+}
+.sidebar-logo{
+  font-family:'Playfair Display',serif;
+  font-size:1.1rem;color:var(--cream);
+  margin-bottom:.2rem;
+}
+.sidebar-logo span{font-style:italic;color:var(--gold)}
+.sidebar-sub{font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:var(--mist);margin-top:.3rem}
+
+.nav-section{padding:1.2rem 0;border-bottom:1px solid var(--rule)}
+.nav-section-label{
+  font-size:.55rem;letter-spacing:.35em;text-transform:uppercase;
+  color:var(--mist);padding:0 1.5rem .6rem;
+}
+.nav-btn{
+  display:flex;align-items:center;gap:.7rem;
+  width:100%;padding:.65rem 1.5rem;
+  background:none;border:none;color:var(--ash);
+  font-size:.8rem;letter-spacing:.04em;
+  text-align:left;transition:background .2s,color .2s;
+}
+.nav-btn:hover{background:var(--lift);color:var(--cream)}
+.nav-btn.active{background:var(--gold-lo);color:var(--gold);border-left:2px solid var(--gold)}
+.nav-btn svg{opacity:.6;flex-shrink:0}
+.nav-btn.active svg{opacity:1}
+
+.sidebar-foot{
+  margin-top:auto;padding:1.5rem;
+  border-top:1px solid var(--rule);
+}
+.preview-link{
+  display:flex;align-items:center;gap:.6rem;
+  padding:.7rem 1rem;border:1px solid var(--rule);
+  color:var(--mist);font-size:.72rem;letter-spacing:.1em;
+  transition:border-color .2s,color .2s;
+}
+.preview-link:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ── MAIN AREA ───────────────────────────────── */
+.main{padding:2.5rem clamp(1.5rem,4vw,3rem);overflow-y:auto}
+.page{display:none}
+.page.active{display:block}
+
+.page-head{margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid var(--rule)}
+.page-title{
+  font-family:'Playfair Display',serif;
+  font-size:1.8rem;color:var(--cream);
+  font-weight:400;margin-bottom:.3rem;
+}
+.page-desc{font-size:.82rem;color:var(--mist);line-height:1.6}
+
+/* ── CARDS ───────────────────────────────────── */
+.card{background:var(--panel);border:1px solid var(--rule);padding:1.8rem;margin-bottom:1.5rem}
+.card-title{
+  font-family:'Playfair Display',serif;
+  font-size:1.05rem;color:var(--cream);
+  font-weight:400;margin-bottom:1.2rem;
+  padding-bottom:.8rem;border-bottom:1px solid var(--rule);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-title-tag{
+  font-size:.6rem;letter-spacing:.25em;text-transform:uppercase;
+  color:var(--gold);padding:.3rem .7rem;border:1px solid var(--gold-lo);
+  background:var(--gold-lo);
+}
+
+/* ── FORM ELEMENTS ───────────────────────────── */
+.field{margin-bottom:1.4rem}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+label{
+  display:block;font-size:.6rem;letter-spacing:.3em;
+  text-transform:uppercase;color:var(--gold);margin-bottom:.5rem;
+}
+input[type=text],input[type=url],textarea,select{
+  width:100%;padding:.75rem 1rem;
+  background:var(--lift);border:1px solid var(--rule);
+  border-bottom-color:var(--mist);
+  color:var(--cream);font-family:'Jost',sans-serif;
+  font-size:.85rem;font-weight:300;outline:none;
+  transition:border-color .2s,background .2s;
+  border-radius:0;-webkit-appearance:none;
+}
+input:focus,textarea:focus,select:focus{
+  border-color:var(--gold);background:var(--ink);
+}
+input::placeholder,textarea::placeholder{color:var(--mist);opacity:.5}
+textarea{resize:vertical;min-height:80px}
+select option{background:var(--panel)}
+
+.hint{font-size:.72rem;color:var(--mist);margin-top:.4rem;line-height:1.5}
+.hint code{
+  background:var(--lift);padding:.1rem .4rem;
+  font-family:monospace;font-size:.7rem;color:var(--cream);
+}
+
+/* ── BUTTONS ─────────────────────────────────── */
+.btn{
+  display:inline-flex;align-items:center;gap:.6rem;
+  padding:.65rem 1.6rem;font-size:.72rem;
+  letter-spacing:.2em;text-transform:uppercase;
+  border:1px solid;transition:all .25s;
+}
+.btn-gold{border-color:var(--gold);color:var(--gold);background:transparent}
+.btn-gold:hover{background:var(--gold);color:var(--ink)}
+.btn-green{border-color:var(--green);color:var(--green);background:transparent}
+.btn-green:hover{background:var(--green);color:#fff}
+.btn-red{border-color:var(--red);color:var(--red);background:transparent}
+.btn-red:hover{background:var(--red);color:#fff}
+.btn-sm{padding:.45rem 1rem;font-size:.65rem}
+.btn-actions{display:flex;gap:.8rem;flex-wrap:wrap;margin-top:1.5rem}
+
+/* ── ARTWORK LIST ────────────────────────────── */
+.art-list{display:flex;flex-direction:column;gap:2px}
+.art-row{
+  display:grid;grid-template-columns:60px 1fr auto auto auto;
+  align-items:center;gap:1rem;
+  background:var(--lift);padding:.8rem 1rem;
+  border:1px solid transparent;
+  transition:border-color .2s;
+}
+.art-row:hover{border-color:var(--rule)}
+.art-thumb{
+  width:60px;height:60px;object-fit:cover;
+  background:var(--panel);flex-shrink:0;
+}
+.art-thumb.err{
+  display:flex;align-items:center;justify-content:center;
+  background:var(--panel);color:var(--mist);font-size:1.2rem;
+}
+.art-row-info{}
+.art-row-title{color:var(--cream);font-size:.85rem;margin-bottom:.2rem}
+.art-row-meta{font-size:.68rem;color:var(--mist);letter-spacing:.08em}
+.art-row-id{
+  font-family:monospace;font-size:.65rem;color:var(--mist);
+  max-width:120px;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+/* ── ADD ARTWORK FORM ────────────────────────── */
+.add-form{
+  background:var(--lift);border:1px dashed var(--rule);
+  padding:1.5rem;margin-top:1rem;
+  display:none;
+}
+.add-form.open{display:block}
+.add-form-title{
+  font-family:'Playfair Display',serif;
+  font-size:1rem;color:var(--cream);
+  margin-bottom:1.2rem;
+}
+
+/* ── STATUS / TOAST ──────────────────────────── */
+.toast{
+  position:fixed;bottom:2rem;right:2rem;z-index:999;
+  background:var(--panel);border:1px solid var(--rule);
+  padding:1rem 1.5rem;max-width:340px;
+  transform:translateY(80px);opacity:0;
+  transition:all .35s cubic-bezier(.16,1,.3,1);
+  display:flex;align-items:center;gap:.8rem;
+}
+.toast.show{transform:translateY(0);opacity:1}
+.toast-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.toast-msg{font-size:.8rem;color:var(--cream)}
+
+/* ── CODE BLOCK ──────────────────────────────── */
+.code-block{
+  background:var(--ink);border:1px solid var(--rule);
+  padding:1.2rem;font-family:monospace;font-size:.75rem;
+  line-height:1.7;color:var(--ash);overflow-x:auto;
+  white-space:pre;margin:1rem 0;
+}
+.code-block .k{color:var(--gold)}
+.code-block .s{color:#7ec8a4}
+.code-block .c{color:var(--mist)}
+
+/* ── STEP LIST ───────────────────────────────── */
+.steps{counter-reset:step;list-style:none;display:flex;flex-direction:column;gap:1.2rem}
+.steps li{
+  counter-increment:step;
+  display:flex;align-items:flex-start;gap:1rem;
+  font-size:.85rem;line-height:1.7;
+}
+.steps li::before{
+  content:counter(step);
+  display:flex;align-items:center;justify-content:center;
+  min-width:28px;height:28px;
+  border:1px solid var(--gold);color:var(--gold);
+  font-size:.7rem;flex-shrink:0;margin-top:.1rem;
+}
+
+/* ── BADGE ───────────────────────────────────── */
+.badge{
+  display:inline-block;padding:.2rem .6rem;
+  font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;
+  border:1px solid;
+}
+.badge-gold{border-color:var(--gold-lo);color:var(--gold);background:var(--gold-lo)}
+.badge-green{border-color:rgba(61,122,85,.3);color:var(--green);background:rgba(61,122,85,.08)}
+
+/* ── DRIVE TESTER ────────────────────────────── */
+.drive-test{display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:start}
+.drive-preview{
+  margin-top:1rem;
+  display:none;
+  gap:1rem;
+  align-items:flex-start;
+}
+.drive-preview.show{display:flex}
+.drive-preview img{
+  width:100px;height:100px;object-fit:cover;
+  border:1px solid var(--rule);background:var(--panel);
+}
+.drive-preview-info{font-size:.78rem;color:var(--ash);line-height:1.8}
+
+/* ── RESPONSIVE ──────────────────────────────── */
+@media(max-width:768px){
+  .admin{grid-template-columns:1fr}
+  .sidebar{position:static;height:auto}
+  .art-row{grid-template-columns:50px 1fr auto}
+  .art-row-id{display:none}
+  .field-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="admin">
+
+  <!-- ══ SIDEBAR ══════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-logo">Kwesi <span>Pee</span></div>
+      <div class="sidebar-sub">Gallery Admin</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Manage</div>
+      <button class="nav-btn active" onclick="showPage('artworks')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Artworks
+      </button>
+      <button class="nav-btn" onclick="showPage('text')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Edit Text
+      </button>
+      <button class="nav-btn" onclick="showPage('howto')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        How To Add Art
+      </button>
+      <button class="nav-btn" onclick="showPage('deploy')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        Go Live (Deploy)
+      </button>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Config File</div>
+      <button class="nav-btn" onclick="showPage('configfile')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        gallery-config.js
+      </button>
+    </div>
+
+    <div class="sidebar-foot">
+      <a class="preview-link" href="index.html" target="_blank">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Preview Gallery
+      </a>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══════════════════════════════════ -->
+  <main class="main">
+
+    <!-- ── ARTWORKS PAGE ──────────────────────── -->
+    <div class="page active" id="page-artworks">
+      <div class="page-head">
+        <h1 class="page-title">Artworks</h1>
+        <p class="page-desc">Add, edit, and manage artworks in each gallery room. You'll need Google Drive file IDs for each image.</p>
+      </div>
+
+      <div id="rooms-editor"></div>
+    </div>
+
+    <!-- ── EDIT TEXT PAGE ─────────────────────── -->
+    <div class="page" id="page-text">
+      <div class="page-head">
+        <h1 class="page-title">Edit Text</h1>
+        <p class="page-desc">Change any text that appears on your gallery — hero title, about bio, contact info, room descriptions, and more.</p>
+      </div>
+
+      <!-- SITE IDENTITY -->
+      <div class="card">
+        <div class="card-title">Site Identity <span class="card-title-tag">site</span></div>
+        <div class="field-row">
+          <div class="field"><label>Artist Name</label><input type="text" id="t-artistName" placeholder="Kwesi Pee"/></div>
+          <div class="field"><label>Exhibition Title</label><input type="text" id="t-exhibitionTitle" placeholder="Lines of Life &amp; Imagination"/></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Location</label><input type="text" id="t-location" placeholder="Accra, Ghana"/></div>
+          <div class="field"><label>Year</label><input type="text" id="t-year" placeholder="2025–2026"/></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Availability</label><input type="text" id="t-availability" placeholder="Open for commissions"/></div>
+          <div class="field"><label>Response Time</label><input type="text" id="t-responseTime" placeholder="Within 48 hours"/></div>
+        </div>
+      </div>
+
+      <!-- HERO -->
+      <div class="card">
+        <div class="card-title">Hero Section <span class="card-title-tag">hero</span></div>
+        <div class="field"><label>Eyebrow Text</label><input type="text" id="t-eyebrow" placeholder="Digital Exhibition · Ghana · 2025–2026"/></div>
+        <div class="field-row">
+          <div class="field"><label>Main Title</label><input type="text" id="t-heroTitle" placeholder="Kwesi Pee"/></div>
+          <div class="field"><label>Title (Italic line)</label><input type="text" id="t-heroItalic" placeholder="Lines of Life &amp; Imagination"/></div>
+        </div>
+        <div class="field"><label>Subtitle / Tagline</label><textarea id="t-heroSub" rows="2" placeholder="Exploring reality, memory..."></textarea></div>
+        <div class="field"><label>CTA Button Text</label><input type="text" id="t-ctaText" placeholder="Enter Exhibition"/></div>
+      </div>
+
+      <!-- ABOUT -->
+      <div class="card">
+        <div class="card-title">About Section <span class="card-title-tag">about</span></div>
+        <div class="field-row">
+          <div class="field"><label>Name</label><input type="text" id="t-aName" placeholder="Kwesi Pee"/></div>
+          <div class="field"><label>Role / Title</label><input type="text" id="t-aRole" placeholder="Visual Artist &amp; Illustrator"/></div>
+        </div>
+        <div class="field"><label>Bio Paragraph 1</label><textarea id="t-aBio1" rows="3"></textarea></div>
+        <div class="field"><label>Bio Paragraph 2</label><textarea id="t-aBio2" rows="3"></textarea></div>
+        <div class="field"><label>Bio Paragraph 3</label><textarea id="t-aBio3" rows="3"></textarea></div>
+      </div>
+
+      <!-- CONTACT -->
+      <div class="card">
+        <div class="card-title">Contact Section <span class="card-title-tag">contact</span></div>
+        <div class="field"><label>Heading</label><input type="text" id="t-cHead" placeholder="Commission &amp; Collaborate"/></div>
+        <div class="field"><label>Subheading</label><textarea id="t-cSub" rows="2"></textarea></div>
+      </div>
+
+      <!-- ROOM DESCRIPTIONS -->
+      <div class="card">
+        <div class="card-title">Room Descriptions <span class="card-title-tag">rooms</span></div>
+        <div id="room-desc-editor"></div>
+      </div>
+
+      <div class="btn-actions">
+        <button class="btn btn-gold" onclick="saveText()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save All Text
+        </button>
+        <button class="btn btn-green" onclick="generateConfig()">Generate gallery-config.js</button>
+      </div>
+    </div>
+
+    <!-- ── HOW TO PAGE ─────────────────────────── -->
+    <div class="page" id="page-howto">
+      <div class="page-head">
+        <h1 class="page-title">How To Add New Art</h1>
+        <p class="page-desc">Step-by-step guide to uploading drawings to your gallery using Google Drive.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Step-by-Step Guide</div>
+        <ol class="steps">
+          <li>
+            <div>
+              <strong style="color:var(--cream)">Take a clear photo</strong> of your drawing. Good lighting makes a huge difference — natural light near a window works great. Make sure the whole drawing is in frame.
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong style="color:var(--cream)">Upload to Google Drive.</strong> Go to <a href="https://drive.google.com" target="_blank" style="color:var(--gold)">drive.google.com</a>, click <strong style="color:var(--cream)">+ New → File upload</strong>, and select your photo.
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong style="color:var(--cream)">Get the shareable link.</strong> Right-click the uploaded image → <em>Share → Change to "Anyone with the link"</em> → Copy link.
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong style="color:var(--cream)">Extract the File ID.</strong> The link looks like:<br/>
+              <code style="font-family:monospace;color:var(--ash);font-size:.78rem">https://drive.google.com/file/d/<strong style="color:var(--gold)">1aBcDeFgHiJkLmNoPqRsTuV</strong>/view?usp=sharing</code><br/>
+              The bold part between <code style="font-family:monospace">/d/</code> and <code style="font-family:monospace">/view</code> is your <strong style="color:var(--cream)">File ID</strong>.
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong style="color:var(--cream)">Test your File ID</strong> using the tester below ↓ — paste it in and check the image loads correctly.
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong style="color:var(--cream)">Add to your gallery</strong> — go to the <button class="btn btn-sm btn-gold" onclick="showPage('artworks')">Artworks</button> page, choose the right room, click "Add Artwork", and paste the File ID.
+            </div>
+          </li>
+          <li>
+            <div>
+              <strong style="color:var(--cream)">Click "Generate gallery-config.js"</strong> and download/replace the file in your gallery folder. Your gallery updates instantly!
+            </div>
+          </li>
+        </ol>
+      </div>
+
+      <!-- Drive ID Tester -->
+      <div class="card">
+        <div class="card-title">🧪 Test a Drive File ID</div>
+        <p style="font-size:.82rem;color:var(--mist);margin-bottom:1.2rem">Paste a Google Drive File ID below to check it works before adding it to your gallery.</p>
+        <div class="drive-test">
+          <div class="field" style="margin:0">
+            <label>Google Drive File ID</label>
+            <input type="text" id="testDriveId" placeholder="e.g. 1aBcDeFgHiJkLmNoPqRsTuV"/>
+          </div>
+          <button class="btn btn-gold" style="margin-top:1.6rem" onclick="testDrive()">Test</button>
+        </div>
+        <div class="drive-preview" id="drivePreview">
+          <img id="drivePreviewImg" src="" alt="Preview"/>
+          <div class="drive-preview-info" id="drivePreviewInfo"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DEPLOY PAGE ─────────────────────────── -->
+    <div class="page" id="page-deploy">
+      <div class="page-head">
+        <h1 class="page-title">Go Live</h1>
+        <p class="page-desc">How to put your gallery on the internet for free so anyone can visit it.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Option A — GitHub Pages <span class="badge badge-green">Free · Recommended</span></div>
+        <ol class="steps">
+          <li>Create a free account at <a href="https://github.com" target="_blank" style="color:var(--gold)">github.com</a></li>
+          <li>Click <strong style="color:var(--cream)">+ New repository</strong> → name it <code style="font-family:monospace;color:var(--ash)">kwesipee-gallery</code> → set to Public → Create</li>
+          <li>Upload your 3 files: <code style="font-family:monospace;color:var(--ash)">index.html</code>, <code style="font-family:monospace;color:var(--ash)">gallery-config.js</code>, <code style="font-family:monospace;color:var(--ash)">admin.html</code></li>
+          <li>Go to <strong style="color:var(--cream)">Settings → Pages → Source → Deploy from branch → main</strong></li>
+          <li>Your gallery is live at: <code style="font-family:monospace;color:var(--gold)">https://yourusername.github.io/kwesipee-gallery</code></li>
+        </ol>
+        <p class="hint" style="margin-top:1.2rem">💡 To update your gallery later: just replace the <code>gallery-config.js</code> file on GitHub and the live site updates in ~1 minute.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Option B — Netlify <span class="badge badge-green">Free · Even Easier</span></div>
+        <ol class="steps">
+          <li>Go to <a href="https://netlify.com" target="_blank" style="color:var(--gold)">netlify.com</a> → Sign up free</li>
+          <li>Drag and drop your gallery folder onto the Netlify dashboard</li>
+          <li>Get a live URL instantly — e.g. <code style="font-family:monospace;color:var(--gold)">kwesi-gallery.netlify.app</code></li>
+          <li>To update: drag the folder again with the new <code>gallery-config.js</code></li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Your 3 Files</div>
+        <p style="font-size:.82rem;color:var(--mist);margin-bottom:1.2rem">These are the only files you need. Keep them together in one folder.</p>
+        <div style="display:flex;flex-direction:column;gap:.5rem">
+          <div style="display:flex;align-items:center;gap:1rem;padding:.8rem;background:var(--lift);border:1px solid var(--rule)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div>
+              <div style="color:var(--cream);font-size:.85rem">index.html</div>
+              <div style="color:var(--mist);font-size:.72rem">The public gallery website</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:1rem;padding:.8rem;background:var(--lift);border:1px solid var(--rule)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div>
+              <div style="color:var(--cream);font-size:.85rem">gallery-config.js</div>
+              <div style="color:var(--mist);font-size:.72rem">All your artwork data and text — this is what you update</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:1rem;padding:.8rem;background:var(--lift);border:1px solid var(--rule)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <div>
+              <div style="color:var(--cream);font-size:.85rem">admin.html</div>
+              <div style="color:var(--mist);font-size:.72rem">This admin panel — keep it private, don't share the link</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CONFIG FILE PAGE ───────────────────── -->
+    <div class="page" id="page-configfile">
+      <div class="page-head">
+        <h1 class="page-title">gallery-config.js</h1>
+        <p class="page-desc">This is the master file that controls everything. Edit the Artworks or Text pages above, then click Generate to download a fresh version.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Generated Config File</div>
+        <p style="font-size:.82rem;color:var(--mist);margin-bottom:1rem">This is auto-generated from your edits. Download it and replace your <code style="font-family:monospace">gallery-config.js</code> file.</p>
+        <div class="btn-actions" style="margin-bottom:1rem">
+          <button class="btn btn-gold" onclick="generateConfig()">Generate Config</button>
+          <button class="btn btn-green" onclick="downloadConfig()">Download gallery-config.js</button>
+        </div>
+        <pre class="code-block" id="configPreview">Click "Generate Config" to preview the file...</pre>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-dot" id="toast-dot"></div>
+  <div class="toast-msg" id="toast-msg"></div>
+</div>
+
+<script src="gallery-config.js"></script>
+<script>
+const C = window.GALLERY_CONFIG;
+
+/* ── Page navigation ───────────────────────── */
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    if (b.getAttribute('onclick')?.includes(id)) b.classList.add('active');
+  });
+}
+
+/* ── Toast ─────────────────────────────────── */
+function toast(msg, color = 'var(--gold)') {
+  const el = document.getElementById('toast');
+  document.getElementById('toast-dot').style.background = color;
+  document.getElementById('toast-msg').textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+/* ── Load text fields from config ──────────── */
+function loadTextFields() {
+  const s = C.site, h = C.hero, a = C.about, co = C.contact;
+  // Site
+  document.getElementById('t-artistName').value      = s.artistName || '';
+  document.getElementById('t-exhibitionTitle').value = s.exhibitionTitle || '';
+  document.getElementById('t-location').value        = s.location || '';
+  document.getElementById('t-year').value            = s.year || '';
+  document.getElementById('t-availability').value    = s.availability || '';
+  document.getElementById('t-responseTime').value    = s.responseTime || '';
+  // Hero
+  document.getElementById('t-eyebrow').value   = h.eyebrow || '';
+  document.getElementById('t-heroTitle').value = h.title || '';
+  document.getElementById('t-heroItalic').value = h.titleItalic || '';
+  document.getElementById('t-heroSub').value   = h.subtitle || '';
+  document.getElementById('t-ctaText').value   = h.ctaText || '';
+  // About
+  document.getElementById('t-aName').value = a.name || '';
+  document.getElementById('t-aRole').value = a.role || '';
+  document.getElementById('t-aBio1').value = a.bio[0] || '';
+  document.getElementById('t-aBio2').value = a.bio[1] || '';
+  document.getElementById('t-aBio3').value = a.bio[2] || '';
+  // Contact
+  document.getElementById('t-cHead').value = co.heading || '';
+  document.getElementById('t-cSub').value  = co.subheading || '';
+
+  // Room desc editor
+  const rde = document.getElementById('room-desc-editor');
+  rde.innerHTML = C.rooms.map((r, i) => `
+    <div style="margin-bottom:1.2rem">
+      <div class="field">
+        <label>Room ${r.roman} — ${r.title} (Title)</label>
+        <input type="text" id="r-title-${i}" value="${r.title}"/>
+      </div>
+      <div class="field">
+        <label>Room ${r.roman} Description</label>
+        <textarea id="r-desc-${i}" rows="2">${r.desc}</textarea>
+      </div>
+    </div>`).join('');
+}
+
+/* ── Save text back to C ───────────────────── */
+function saveText() {
+  C.site.artistName      = document.getElementById('t-artistName').value;
+  C.site.exhibitionTitle = document.getElementById('t-exhibitionTitle').value;
+  C.site.location        = document.getElementById('t-location').value;
+  C.site.year            = document.getElementById('t-year').value;
+  C.site.availability    = document.getElementById('t-availability').value;
+  C.site.responseTime    = document.getElementById('t-responseTime').value;
+  C.hero.eyebrow         = document.getElementById('t-eyebrow').value;
+  C.hero.title           = document.getElementById('t-heroTitle').value;
+  C.hero.titleItalic     = document.getElementById('t-heroItalic').value;
+  C.hero.subtitle        = document.getElementById('t-heroSub').value;
+  C.hero.ctaText         = document.getElementById('t-ctaText').value;
+  C.about.name           = document.getElementById('t-aName').value;
+  C.about.role           = document.getElementById('t-aRole').value;
+  C.about.bio            = [
+    document.getElementById('t-aBio1').value,
+    document.getElementById('t-aBio2').value,
+    document.getElementById('t-aBio3').value
+  ].filter(Boolean);
+  C.contact.heading      = document.getElementById('t-cHead').value;
+  C.contact.subheading   = document.getElementById('t-cSub').value;
+
+  C.rooms.forEach((r, i) => {
+    const t = document.getElementById(`r-title-${i}`);
+    const d = document.getElementById(`r-desc-${i}`);
+    if (t) r.title = t.value;
+    if (d) r.desc  = d.value;
+  });
+
+  toast('Text saved! Now click "Generate gallery-config.js" to create your file.', 'var(--green)');
+}
+
+/* ── ROOMS EDITOR ──────────────────────────── */
+function buildRoomsEditor() {
+  const container = document.getElementById('rooms-editor');
+  container.innerHTML = '';
+
+  C.rooms.forEach((room, ri) => {
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.innerHTML = `
+      <div class="card-title">
+        Room ${room.roman} — ${room.title}
+        <span class="badge badge-gold">${room.artworks.length} works</span>
+      </div>
+      <div class="art-list" id="list-${room.id}"></div>
+      <button class="btn btn-gold btn-sm" style="margin-top:1rem" onclick="toggleAdd('${room.id}')">
+        + Add Artwork
+      </button>
+      <div class="add-form" id="add-${room.id}">
+        <div class="add-form-title">Add New Artwork to ${room.title}</div>
+        <div class="field">
+          <label>Google Drive File ID</label>
+          <input type="text" id="add-id-${room.id}" placeholder="e.g. 1aBcDeFgHiJkLmNoPqRsTuV"/>
+          <div class="hint">Right-click image in Drive → Share → Copy link → extract the ID between /d/ and /view</div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Title</label>
+            <input type="text" id="add-title-${room.id}" placeholder="My New Drawing"/>
+          </div>
+          <div class="field">
+            <label>Medium</label>
+            <input type="text" id="add-medium-${room.id}" placeholder="Pencil & Marker"/>
+          </div>
+        </div>
+        <div class="field" style="max-width:200px">
+          <label>Year</label>
+          <input type="text" id="add-year-${room.id}" placeholder="${new Date().getFullYear()}"/>
+        </div>
+        <div class="btn-actions">
+          <button class="btn btn-green btn-sm" onclick="addArtwork('${room.id}')">Add to Gallery</button>
+          <button class="btn btn-sm" style="border-color:var(--rule);color:var(--mist)" onclick="toggleAdd('${room.id}')">Cancel</button>
+        </div>
+      </div>`;
+    container.appendChild(div);
+    renderList(room.id);
+  });
+}
+
+function renderList(roomId) {
+  const room = C.rooms.find(r => r.id === roomId);
+  const list = document.getElementById('list-' + roomId);
+  if (!room || !list) return;
+
+  if (!room.artworks.length) {
+    list.innerHTML = '<div style="padding:1rem;color:var(--mist);font-size:.82rem;font-style:italic">No artworks yet. Click "+ Add Artwork" below.</div>';
+    return;
+  }
+
+  list.innerHTML = room.artworks.map((a, i) => `
+    <div class="art-row">
+      <div class="art-thumb" id="thumb-${roomId}-${i}">
+        <span style="color:var(--mist);font-size:1rem">⏳</span>
+      </div>
+      <div class="art-row-info">
+        <div class="art-row-title">${a.title}</div>
+        <div class="art-row-meta">${a.medium} · ${a.year}</div>
+      </div>
+      <div class="art-row-id">${a.driveId}</div>
+      <button class="btn btn-sm" style="border-color:var(--rule);color:var(--mist)" onclick="editArtwork('${roomId}',${i})">Edit</button>
+      <button class="btn btn-red btn-sm" onclick="removeArtwork('${roomId}',${i})">Remove</button>
+    </div>`).join('');
+
+  // Lazy-load thumbnails
+  room.artworks.forEach((a, i) => {
+    const thumb = document.getElementById(`thumb-${roomId}-${i}`);
+    if (!thumb) return;
+    if (!a.driveId || a.driveId === 'PASTE_DRIVE_ID_HERE') {
+      thumb.innerHTML = '<span style="color:var(--mist);font-size:.7rem">No ID</span>';
+      return;
+    }
+    const url = `https://lh3.googleusercontent.com/d/${a.driveId}=s80`;
+    const img = document.createElement('img');
+    img.style.cssText = 'width:60px;height:60px;object-fit:cover';
+    img.onload  = () => { thumb.innerHTML = ''; thumb.appendChild(img); };
+    img.onerror = () => { thumb.innerHTML = '<span style="color:var(--red);font-size:.65rem">Error</span>'; };
+    img.src = url;
+  });
+}
+
+function toggleAdd(roomId) {
+  const form = document.getElementById('add-' + roomId);
+  form.classList.toggle('open');
+  if (form.classList.contains('open')) {
+    document.getElementById('add-year-' + roomId).value = new Date().getFullYear();
+  }
+}
+
+function addArtwork(roomId) {
+  const room = C.rooms.find(r => r.id === roomId);
+  if (!room) return;
+  const id     = document.getElementById('add-id-' + roomId).value.trim();
+  const title  = document.getElementById('add-title-' + roomId).value.trim();
+  const medium = document.getElementById('add-medium-' + roomId).value.trim();
+  const year   = document.getElementById('add-year-' + roomId).value.trim();
+
+  if (!id)    { toast('Please enter a Drive File ID', 'var(--red)'); return; }
+  if (!title) { toast('Please enter a title', 'var(--red)'); return; }
+
+  room.artworks.push({ driveId: id, title, medium: medium || 'Mixed Media', year: year || String(new Date().getFullYear()) });
+  renderList(roomId);
+  toggleAdd(roomId);
+  // Clear form
+  ['id','title','medium','year'].forEach(f => { const el = document.getElementById(`add-${f}-${roomId}`); if(el) el.value = ''; });
+  // Update badge
+  const badge = document.querySelector(`#list-${roomId}`)?.closest('.card')?.querySelector('.badge');
+  if (badge) badge.textContent = room.artworks.length + ' works';
+  toast(`"${title}" added to ${room.title}!`, 'var(--green)');
+}
+
+function removeArtwork(roomId, idx) {
+  const room = C.rooms.find(r => r.id === roomId);
+  if (!room) return;
+  const title = room.artworks[idx]?.title || 'Artwork';
+  if (!confirm(`Remove "${title}" from ${room.title}?`)) return;
+  room.artworks.splice(idx, 1);
+  renderList(roomId);
+  toast(`Removed "${title}"`, 'var(--red)');
+}
+
+function editArtwork(roomId, idx) {
+  const room = C.rooms.find(r => r.id === roomId);
+  if (!room) return;
+  const a = room.artworks[idx];
+  const newTitle  = prompt('Title:', a.title);
+  if (newTitle === null) return;
+  const newMedium = prompt('Medium:', a.medium);
+  if (newMedium === null) return;
+  const newYear   = prompt('Year:', a.year);
+  if (newYear === null) return;
+  const newId     = prompt('Drive File ID:', a.driveId);
+  if (newId === null) return;
+  a.title = newTitle; a.medium = newMedium; a.year = newYear; a.driveId = newId;
+  renderList(roomId);
+  toast('Artwork updated!', 'var(--green)');
+}
+
+/* ── Drive tester ───────────────────────────── */
+function testDrive() {
+  const id = document.getElementById('testDriveId').value.trim();
+  if (!id) { toast('Enter a File ID first', 'var(--red)'); return; }
+  const url = `https://lh3.googleusercontent.com/d/${id}=s500`;
+  const prev = document.getElementById('drivePreview');
+  const img  = document.getElementById('drivePreviewImg');
+  const info = document.getElementById('drivePreviewInfo');
+  prev.classList.remove('show');
+  info.innerHTML = '<span style="color:var(--mist)">Loading…</span>';
+  img.onload  = () => { prev.classList.add('show'); info.innerHTML = `<div style="color:var(--green)">✓ Image loads correctly</div><div style="margin-top:.5rem;color:var(--mist);font-size:.72rem">File ID: <code style="font-family:monospace">${id}</code></div><div style="color:var(--mist);font-size:.72rem;margin-top:.3rem">You can now add this to your gallery.</div>`; };
+  img.onerror = () => { prev.classList.add('show'); info.innerHTML = `<div style="color:var(--red)">✗ Could not load image</div><div style="margin-top:.5rem;color:var(--mist);font-size:.72rem">Make sure:<br>1. The File ID is correct<br>2. The file is shared as "Anyone with link"</div>`; };
+  img.src = url;
+  prev.classList.add('show');
+}
+
+/* ── Generate config ────────────────────────── */
+let generatedConfig = '';
+
+function generateConfig() {
+  const rooms = C.rooms.map(r => {
+    const artworks = r.artworks.map(a =>
+      `        { driveId: "${a.driveId}", title: "${a.title.replace(/"/g,'\\"')}", medium: "${a.medium.replace(/"/g,'\\"')}", year: "${a.year}" }`
+    ).join(',\n');
+    return `    {
+      id:    "${r.id}",
+      roman: "${r.roman}",
+      title: "${r.title.replace(/"/g,'\\"')}",
+      desc:  "${r.desc.replace(/"/g,'\\"')}",
+      cardDesc: "${r.cardDesc.replace(/"/g,'\\"')}",
+      artworks: [
+${artworks || '        // No artworks yet'}
+      ]
+    }`;
+  }).join(',\n');
+
+  generatedConfig = `/**
+ * ═══════════════════════════════════════════════════════
+ *  KWESI PEE — GALLERY CONFIGURATION
+ *  Auto-generated by Admin Panel on ${new Date().toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'})}
+ *  ───────────────────────────────────────────────────────
+ *  HOW TO ADD NEW ARTWORK:
+ *  1. Upload photo to Google Drive
+ *  2. Share as "Anyone with the link"
+ *  3. Copy the File ID from the link (between /d/ and /view)
+ *  4. Add entry to the correct room's artworks array
+ *  5. Replace this file in your gallery folder
+ * ═══════════════════════════════════════════════════════
+ */
+
+window.GALLERY_CONFIG = {
+
+  site: {
+    artistName:      "${C.site.artistName}",
+    exhibitionTitle: "${C.site.exhibitionTitle}",
+    tagline:         "${C.site.tagline||''}",
+    location:        "${C.site.location}",
+    year:            "${C.site.year}",
+    availability:    "${C.site.availability}",
+    responseTime:    "${C.site.responseTime}",
+  },
+
+  hero: {
+    eyebrow:     "${C.hero.eyebrow}",
+    title:       "${C.hero.title}",
+    titleItalic: "${C.hero.titleItalic}",
+    subtitle:    "${C.hero.subtitle}",
+    ctaText:     "${C.hero.ctaText}",
+  },
+
+  about: {
+    name: "${C.about.name}",
+    role: "${C.about.role}",
+    bio: [
+      "${C.about.bio[0]||''}",
+      "${C.about.bio[1]||''}",
+      "${C.about.bio[2]||''}"
+    ],
+    stats: [
+      { number: "${C.about.stats[0]?.number||'64+'}", label: "${C.about.stats[0]?.label||'Works'}" },
+      { number: "${C.about.stats[1]?.number||'IV'}",  label: "${C.about.stats[1]?.label||'Rooms'}" },
+      { number: "${C.about.stats[2]?.number||'GH'}",  label: "${C.about.stats[2]?.label||'Origin'}" }
+    ]
+  },
+
+  contact: {
+    heading:    "${C.contact.heading}",
+    subheading: "${C.contact.subheading}",
+    commissionTypes: ${JSON.stringify(C.contact.commissionTypes, null, 4)}
+  },
+
+  rooms: [
+${rooms}
+  ]
+
+}; // end GALLERY_CONFIG
+`;
+
+  document.getElementById('configPreview').textContent = generatedConfig;
+  showPage('configfile');
+  toast('Config generated! Click Download to save it.', 'var(--green)');
+}
+
+function downloadConfig() {
+  if (!generatedConfig) { generateConfig(); return; }
+  const blob = new Blob([generatedConfig], { type: 'text/javascript' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'gallery-config.js';
+  a.click();
+  toast('Downloaded! Replace the gallery-config.js in your folder.', 'var(--green)');
+}
+
+/* ── Init ───────────────────────────────────── */
+loadTextFields();
+buildRoomsEditor();
+</script>
+</body>
+</html>
